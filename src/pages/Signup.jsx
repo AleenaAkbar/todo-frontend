@@ -16,12 +16,38 @@ function Signup() {
     setLoading(true);
     
     try {
-      await api.post("/auth/signup", { name, email, password });
+      console.log("🚀 Attempting signup...");
+      console.log("API Base URL:", api.defaults.baseURL);
+      
+      const response = await api.post("/auth/signup", { name, email, password });
+      console.log("✅ Signup successful:", response.data);
+      
       // ✅ Signup ke baad redirect to login
       navigate("/login");
     } catch (err) {
-      setError(err.response?.data?.error || "Something went wrong. Try again.");
-      console.error("Signup failed:", err);
+      console.error("❌ Signup failed:", err);
+      console.error("Error details:", {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+        url: err.config?.url,
+        baseURL: err.config?.baseURL
+      });
+      
+      // Better error messages
+      let errorMessage = "Something went wrong. Try again.";
+      
+      if (err.code === 'NETWORK_ERROR' || err.message.includes('Network Error')) {
+        errorMessage = "Cannot connect to server. Please check your internet connection.";
+      } else if (err.response?.status === 400) {
+        errorMessage = err.response.data?.error || "Invalid information provided.";
+      } else if (err.response?.status === 500) {
+        errorMessage = "Server error. Please try again later.";
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -31,6 +57,24 @@ function Signup() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-3xl font-bold text-center text-indigo-600 mb-6">Sign Up</h2>
+        
+        {/* Debug Info */}
+        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4 text-sm">
+          <strong>API URL:</strong> {api.defaults.baseURL}
+          <br />
+          <button 
+            onClick={() => {
+              console.log("Testing API connection...");
+              fetch(api.defaults.baseURL)
+                .then(res => res.text())
+                .then(data => console.log("✅ Backend response:", data))
+                .catch(err => console.error("❌ Backend error:", err));
+            }}
+            className="mt-2 bg-blue-500 text-white px-2 py-1 rounded text-xs"
+          >
+            Test Backend Connection
+          </button>
+        </div>
         
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
