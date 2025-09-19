@@ -37,7 +37,9 @@ function Signup() {
       // Better error messages
       let errorMessage = "Something went wrong. Try again.";
       
-      if (err.code === 'NETWORK_ERROR' || err.message.includes('Network Error')) {
+      if (err.code === 'ECONNABORTED' || err.message.includes('timeout')) {
+        errorMessage = "Request timed out. The server is taking too long to respond. Please try again.";
+      } else if (err.code === 'NETWORK_ERROR' || err.message.includes('Network Error')) {
         errorMessage = "Cannot connect to server. Please check your internet connection.";
       } else if (err.response?.status === 400) {
         errorMessage = err.response.data?.error || "Invalid information provided.";
@@ -58,23 +60,6 @@ function Signup() {
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-3xl font-bold text-center text-indigo-600 mb-6">Sign Up</h2>
         
-        {/* Debug Info */}
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4 text-sm">
-          <strong>API URL:</strong> {api.defaults.baseURL}
-          <br />
-          <button 
-            onClick={() => {
-              console.log("Testing API connection...");
-              fetch(api.defaults.baseURL)
-                .then(res => res.text())
-                .then(data => console.log("✅ Backend response:", data))
-                .catch(err => console.error("❌ Backend error:", err));
-            }}
-            className="mt-2 bg-blue-500 text-white px-2 py-1 rounded text-xs"
-          >
-            Test Backend Connection
-          </button>
-        </div>
         
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
